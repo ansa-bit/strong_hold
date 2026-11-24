@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import AboutSection from "@/component/AboutSection";
 import BlogsSection from "@/component/BlogSection";
 import FAQSection from "@/component/FaqSection";
@@ -9,8 +10,21 @@ import TestimonialsSection from "@/component/TestimonialSection";
 import ServicesSection from "@/component/Whatwedo";
 import WhyChooseUs from "@/component/WhyChooseUs";
 import RecentWorks from "@/component/Works";
+import { getFaqs } from "@/sanity/lib/content";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Stronghold Structures | Post-Tensioning & Civil Construction Company in Kochi",
+  },
+  description:
+    "Kochi-based post-tensioning and civil construction experts. Structural design, BOQ, PT slabs, prefabricated steel buildings and retrofitting for commercial, residential and institutional projects across India.",
+  alternates: { canonical: "/" },
+};
+
+export default async function Home() {
+  const faqs = await getFaqs("home");
+
   return (
     <main className="bg-black min-h-screen">
       <Hero />
@@ -20,7 +34,7 @@ export default function Home() {
       <WhyChooseUs />
       <RecentWorks />
       <TestimonialsSection />
-      <FAQSection />
+      <FAQSection faqs={faqs} />
       <BlogsSection />
 
     </main>

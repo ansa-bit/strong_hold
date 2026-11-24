@@ -6,14 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sanity:seed": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed-sanity.mjs"
   },
   "dependencies": {
+    "@sanity/client": "^7.28.0",
+    "@sanity/icons": "^5.4.0",
+    "@sanity/image-url": "^2.2.0",
+    "@sanity/vision": "^6.24.0",
     "framer-motion": "^12.27.1",
     "lucide-react": "^0.562.0",
     "next": "16.1.4",
+    "next-sanity": "^13.5.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "sanity": "^6.24.0",
+    "styled-components": "^6.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -22,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

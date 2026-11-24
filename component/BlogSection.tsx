@@ -1,25 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { getBlogPosts } from '@/sanity/lib/content';
 
-const BlogsSection = () => {
-    const blogs = [
-        {
-            date: "14 Jan, 2026",
-            title: "From Blueprint to Build: How the Construction Process Really Works",
-            image: "/blog1.png",
-        },
-        {
-            date: "02 Jan, 2026",
-            title: "The Most Common Construction Mistakes (and How to Avoid Them)",
-            image: "/blog2.png",
-        },
-        {
-            date: "02 Jan, 2026",
-            title: "Why Proper Planning Is the Key to Successful Construction",
-            image: "/blog3.png",
-        }
-    ];
+const BlogsSection = async () => {
+    const blogs = (await getBlogPosts()).slice(0, 3);
+
+    if (blogs.length === 0) return null;
 
     return (
         <section className="bg-white py-20 md:py-32 px-6 md:px-12">
@@ -53,13 +40,13 @@ const BlogsSection = () => {
 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                    {blogs.map((blog, index) => (
-                        <Link key={index} href="#" className="group flex flex-col gap-4">
+                    {blogs.map((blog) => (
+                        <Link key={blog.slug} href={`/blogs/${blog.slug}`} className="group flex flex-col gap-4">
 
                             <div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-gray-200" style={{ aspectRatio: '16/10' }}>
                                 <Image
                                     src={blog.image}
-                                    alt={blog.title}
+                                    alt={blog.imageAlt}
                                     fill
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />

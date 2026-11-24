@@ -1,22 +1,11 @@
 import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import { getFeaturedProjects } from '@/sanity/lib/content';
 
-const RecentWorks = () => {
-  const projects = [
-    {
-      title: "Bizopp Mall, Thrissur",
-      image: "/projects/bizopp-mall-render.webp",
-    },
-    {
-      title: "Juma Masjid, Chamakkala, Thrissur",
-      image: "/projects/chamakkala-masjid-render.webp",
-    },
-    {
-      title: "Claysys Lifestyle Apartment, Kochi",
-      image: "/projects/claysys-lifestyle-kochi.webp",
-    }
-  ];
+// Shows projects marked "Show on homepage" in the CMS.
+const RecentWorks = async () => {
+  const projects = await getFeaturedProjects(3);
 
   return (
     <section className="bg-[#001A38] py-20 md:py-32 px-6 md:px-12">
@@ -50,12 +39,12 @@ const RecentWorks = () => {
 
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {projects.map((project, index) => (
-            <div key={index} className="group cursor-pointer">
-             
+          {projects.map((project) => (
+            <div key={project.id} className="group cursor-pointer">
+
               <div className="relative aspect-[4/5] overflow-hidden rounded-[1rem] mb-6">
                 <Image
-                  src={project.image}
+                  src={project.images[0]}
                   alt={project.title}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"

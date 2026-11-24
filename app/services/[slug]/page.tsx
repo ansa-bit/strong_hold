@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getServiceBySlug, services } from "@/app/services/services-data";
+import { getService, getServices } from "@/sanity/lib/content";
+import { JsonLd, absoluteUrl, siteConfig } from "@/app/site-config";
 
 type ServiceDetailPageProps = {
   params: Promise<{
@@ -12,6 +13,7 @@ type ServiceDetailPageProps = {
 };
 
 export async function generateStaticParams() {
+  const services = await getServices();
   return services.map((service) => ({
     slug: service.slug,
   }));
@@ -21,17 +23,22 @@ export async function generateMetadata({
   params,
 }: ServiceDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getService(slug);
 
   if (!service) {
     return {
-      title: "Service Not Found | StrongHold",
+      title: "Service Not Found",
     };
   }
 
+  const title = service.seo?.metaTitle || service.title;
+  const description = service.seo?.metaDescription || service.description;
+
   return {
-    title: `${service.title} | StrongHold`,
-    description: service.description,
+    title,
+    description,
+    alternates: { canonical: `/services/${service.slug}` },
+    openGraph: { title, description, images: [service.image] },
   };
 }
 
@@ -39,14 +46,27 @@ export default async function ServiceDetailPage({
   params,
 }: ServiceDetailPageProps) {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getService(slug);
 
   if (!service) {
     notFound();
   }
 
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.title,
+    description: service.description,
+    serviceType: service.title,
+    url: `${siteConfig.url}/services/${service.slug}`,
+    image: absoluteUrl(service.image),
+    areaServed: "IN",
+    provider: { "@id": `${siteConfig.url}/#organization` },
+  };
+
   return (
     <main className="w-full bg-white font-sans overflow-hidden">
+      <JsonLd data={serviceSchema} />
       <section className="bg-[#EBF9FE] py-16 px-6 md:px-12 lg:px-24">
         <div className="max-w-5xl mx-auto">
           <span className="inline-block px-4 py-1 rounded-sm border border-gray-300 text-xs font-medium text-gray-600 bg-white mb-6">
@@ -62,7 +82,7 @@ export default async function ServiceDetailPage({
         <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100 mb-10">
           <Image
             src={service.image}
-            alt={service.title}
+            alt={service.imageAlt}
             fill
             className="object-cover"
             priority
@@ -71,7 +91,7 @@ export default async function ServiceDetailPage({
 
         <div className="max-w-3xl">
           <p className="text-sm font-semibold tracking-[0.2em] uppercase text-[#002B5B] mb-4">
-            {service.id}
+            {service.number}
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
             {service.title}
