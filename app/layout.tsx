@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/component/Navbar";
-import Footer from "@/component/Footer";
+import SiteChrome from "@/component/SiteChrome";
 import Script from "next/script";
 import { JsonLd, siteConfig } from "@/app/site-config";
 
@@ -75,11 +74,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <JsonLd data={organizationSchema} />
-        <Navbar />
-        <main className="pt-20">
-          {children}
-        </main>
-        <Footer />
+        <SiteChrome>{children}</SiteChrome>
         {gaId && (
           <>
             <Script

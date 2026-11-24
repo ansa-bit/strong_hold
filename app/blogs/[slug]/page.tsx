@@ -3,8 +3,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { blogPosts, getBlogPostBySlug, parsePostDate } from "@/app/blogs/blogs-data";
-import { JsonLd, siteConfig } from "@/app/site-config";
+import { PortableText, type PortableTextComponents } from "next-sanity";
+import { getBlogPost, getBlogPosts } from "@/sanity/lib/content";
+import { imageUrl } from "@/sanity/lib/image";
+import { JsonLd, absoluteUrl, siteConfig } from "@/app/site-config";
 
 type BlogDetailPageProps = {
   params: Promise<{
@@ -12,8 +14,62 @@ type BlogDetailPageProps = {
   }>;
 };
 
+const bodyComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => (
+      <p className="text-base md:text-lg leading-8 text-slate-600 mb-6 last:mb-0">{children}</p>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mt-10 mb-4">{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-xl md:text-2xl font-bold text-slate-900 mt-8 mb-3">{children}</h3>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-[#00D1FF] pl-5 italic text-slate-700 my-8">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }) => (
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-base md:text-lg leading-8 text-slate-600">{children}</ul>
+    ),
+    number: ({ children }) => (
+      <ol className="list-decimal pl-6 mb-6 space-y-2 text-base md:text-lg leading-8 text-slate-600">{children}</ol>
+    ),
+  },
+  marks: {
+    link: ({ value, children }) => {
+      const href: string = value?.href ?? "#";
+      const external = /^https?:\/\//.test(href);
+      return (
+        <a
+          href={href}
+          className="text-blue-700 underline underline-offset-2"
+          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
+          {children}
+        </a>
+      );
+    },
+  },
+  types: {
+    image: ({ value }) => {
+      const src = imageUrl(value, 1200);
+      if (!src) return null;
+      return (
+        <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-100 my-8">
+          <Image src={src} alt={value?.alt ?? ""} fill className="object-cover" />
+        </div>
+      );
+    },
+  },
+};
+
 export async function generateStaticParams() {
-  return blogPosts.map((post) => ({
+  const posts = await getBlogPosts();
+  return posts.map((post) => ({
     slug: post.slug,
   }));
 }
@@ -22,7 +78,7 @@ export async function generateMetadata({
   params,
 }: BlogDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPost(slug);
 
   if (!post) {
     return {
@@ -30,14 +86,17 @@ export async function generateMetadata({
     };
   }
 
+  const title = post.seo?.metaTitle || post.title;
+  const description = post.seo?.metaDescription || post.excerpt;
+
   return {
-    title: post.title,
-    description: post.excerpt,
+    title,
+    description,
     alternates: { canonical: `/blogs/${post.slug}` },
     openGraph: {
       type: "article",
-      title: post.title,
-      description: post.excerpt,
+      title,
+      description,
       images: [post.image],
     },
   };
@@ -45,13 +104,13 @@ export async function generateMetadata({
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const [post, allPosts] = await Promise.all([getBlogPost(slug), getBlogPosts()]);
 
   if (!post) {
     notFound();
   }
 
-  const otherPosts = blogPosts
+  const otherPosts = allPosts
     .filter((item) => item.slug !== post.slug)
     .slice(0, 3);
 
@@ -60,8 +119,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt,
-    image: `${siteConfig.url}${post.image}`,
-    datePublished: parsePostDate(post.date).toISOString().slice(0, 10),
+    image: absoluteUrl(post.image),
+    datePublished: post.publishedAt,
     mainEntityOfPage: `${siteConfig.url}/blogs/${post.slug}`,
     author: { "@id": `${siteConfig.url}/#organization` },
     publisher: { "@id": `${siteConfig.url}/#organization` },
@@ -86,7 +145,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100 mb-10">
           <Image
             src={post.image}
-            alt={post.title}
+            alt={post.imageAlt}
             fill
             className="object-cover"
             priority
@@ -94,14 +153,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         </div>
 
         <div className="max-w-3xl">
-          {post.content.map((paragraph, index) => (
-            <p
-              key={index}
-              className="text-base md:text-lg leading-8 text-slate-600 mb-6 last:mb-0"
-            >
-              {paragraph}
-            </p>
-          ))}
+          <PortableText value={post.body} components={bodyComponents} />
         </div>
 
         <div className="mt-12">
@@ -127,7 +179,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                   <div className="relative aspect-[16/10] overflow-hidden rounded-lg mb-4 bg-slate-100">
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={item.imageAlt}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />

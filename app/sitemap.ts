@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
-import { blogPosts, parsePostDate } from "@/app/blogs/blogs-data";
-import { services } from "@/app/services/services-data";
+import { getBlogPosts, getServices } from "@/sanity/lib/content";
 import { siteConfig } from "@/app/site-config";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url;
+  const [services, blogPosts] = await Promise.all([getServices(), getBlogPosts()]);
+
   const staticPages = ["", "/about-us", "/services", "/works", "/blogs"].map(
     (path) => ({
       url: `${base}${path}`,
@@ -22,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...blogPosts.map((post) => ({
       url: `${base}/blogs/${post.slug}`,
-      lastModified: parsePostDate(post.date),
+      lastModified: new Date(`${post.publishedAt}T00:00:00Z`),
       changeFrequency: "yearly" as const,
       priority: 0.6,
     })),

@@ -19,6 +19,11 @@ export const siteConfig = {
   ],
 };
 
+/** Makes a site-relative path ("/blog1.png") absolute; leaves full URLs (Sanity CDN) as-is. */
+export function absoluteUrl(src: string): string {
+  return /^https?:\/\//.test(src) ? src : `${siteConfig.url}${src}`;
+}
+
 export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
     <script

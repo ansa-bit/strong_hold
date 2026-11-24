@@ -10,6 +10,7 @@ import TestimonialsSection from "@/component/TestimonialSection";
 import ServicesSection from "@/component/Whatwedo";
 import WhyChooseUs from "@/component/WhyChooseUs";
 import RecentWorks from "@/component/Works";
+import { getFaqs } from "@/sanity/lib/content";
 
 export const metadata: Metadata = {
   title: {
@@ -21,7 +22,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function Home() {
+export default async function Home() {
+  const faqs = await getFaqs("home");
+
   return (
     <main className="bg-black min-h-screen">
       <Hero />
@@ -31,7 +34,7 @@ export default function Home() {
       <WhyChooseUs />
       <RecentWorks />
       <TestimonialsSection />
-      <FAQSection />
+      <FAQSection faqs={faqs} />
       <BlogsSection />
 
     </main>

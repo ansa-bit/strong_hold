@@ -56,9 +56,6 @@ export const blogPosts: BlogPost[] = [
   },
 ];
 
-export function getBlogPostBySlug(slug: string) {
-  return blogPosts.find((post) => post.slug === slug);
-}
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

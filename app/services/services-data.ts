@@ -56,7 +56,3 @@ export const services: Service[] = [
     image: "/services6.png",
   },
 ];
-
-export function getServiceBySlug(slug: string) {
-  return services.find((service) => service.slug === slug);
-}
